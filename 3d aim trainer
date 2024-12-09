@@ -1,0 +1,68 @@
+import * as THREE from 'three';
+
+// Scene, Camera, Renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Light
+const light = new THREE.PointLight(0xffffff, 1, 100);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+// Target
+const targetGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+const targetMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+const target = new THREE.Mesh(targetGeometry, targetMaterial);
+scene.add(target);
+target.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, -10);
+
+// Camera Position
+camera.position.z = 5;
+
+// Score and Timer
+let score = 0;
+let timeLeft = 30;
+const scoreDisplay = document.getElementById('score');
+const timerDisplay = document.getElementById('timer');
+
+// Update Timer
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  timerDisplay.textContent = `Time: ${timeLeft}`;
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    alert(`Time's up! Final Score: ${score}`);
+  }
+}, 1000);
+
+// Handle Clicks
+document.addEventListener('click', (event) => {
+  const mouse = new THREE.Vector2(
+    (event.clientX / window.innerWidth) * 2 - 1,
+    -(event.clientY / window.innerHeight) * 2 + 1
+  );
+
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObject(target);
+  if (intersects.length > 0) {
+    score++;
+    scoreDisplay.textContent = `Score: ${score}`;
+    target.position.set(
+      Math.random() * 10 - 5,
+      Math.random() * 10 - 5,
+      Math.random() * -5 - 5
+    );
+  }
+});
+
+// Render Loop
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
